@@ -13,10 +13,10 @@ def img_check(img):
     w_a, h_a = frame.shape[1], frame.shape[0]
 
     new_x = 870 / img.shape[1]
-    img = cv2.resize(img, None, None, fx=new_x, fy=new_x, interpolation=cv2.INTER_LINEAR)
+    img = cv2.resize(img, None, None, fx=new_x, fy=new_x, interpolation=cv2.INTER_AREA)
     img = cv2.GaussianBlur(img, (5, 5), 0)
     img_roi = cv2.bitwise_or(cv2.Canny(cv2.cvtColor(img, cv2.COLOR_BGR2HSV)[:,:,1], 80, 100),
-                             cv2.Canny(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 100, 100))
+                             cv2.Canny(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY), 100, 150))
     M = ones((2, 2), uint8)
     img_roi = cv2.dilate(img_roi, M, iterations=1)
 
