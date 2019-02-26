@@ -23,6 +23,7 @@ def analyzer(url, url_output, color_folder, organ, json_data=True):
 
     # detect marker and delete it from contours
     markers, contours = detect_markers_integrated(img, contours)
+    img = colorBalance(img, markers[0].coordinates())
 
     # (optional) calculate factor pixel to cm
     factor = factor_calculator(markers, real_border=5.0)
