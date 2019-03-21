@@ -69,7 +69,7 @@ def main(argv):
     organ=None
     keywords=None
     try:
-        opts, args = getopt.getopt(argv,"hi:o:c:g:k",["input_dir=", 'output_dir=', 'color_dir=', 'organ=', 'keywords='])
+        opts, args = getopt.getopt(argv,"hi:o:c:g:k:",["input_dir=", 'output_dir=', 'color_dir=', 'organ=', 'keywords='])
     except getopt.GetoptError:
         print('-i <image(s) directory> -o <data output directory> -c <color templates directory> -g <organ> -k <keywords>')
         sys.exit(2)
