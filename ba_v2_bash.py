@@ -89,7 +89,7 @@ def main(argv):
             keywords = arg.split(' ')
         else:
             print(opt, arg)
-        print(opt)
+        print(arg)
     if organ==None or organ not in organs:
         print('You must specify a valid organ under the flag -g')
         print('Organ options:')
