@@ -161,7 +161,7 @@ def detect_markers_integrated(img, contours, area_thresh=100):
             continue
 
         warped_gray = four_point_transform(gray, box)
-        umbral = 120
+        umbral = 110
         _, warped_bin = cv2.threshold(warped_gray, umbral, 255, cv2.THRESH_BINARY)
 
         marker = cv2.resize(warped_bin, (7,7), interpolation=cv2.INTER_LINEAR)
