@@ -11,7 +11,7 @@ from numpy import zeros, uint8
 
 organs=['bayas', 'raquis']
 
-def analyzer(url, url_output, color_folder, organ, json_data=True):
+def analyzer(url, url_output, color_folder, organ, json_data=True, output_type=None):
     img = imread(url)
 
     # detect the white square and the objects in it
@@ -32,9 +32,11 @@ def analyzer(url, url_output, color_folder, organ, json_data=True):
     contours = roi_filter(img.shape[:2][::-1], contours)
 
     # UNDER CONSTRUCTION: generate a visual output
-    black = zeros(img.shape[:2], uint8)
-    drawContours(black, contours, -1, 255, -1)
-    black = bitwise_and(img, img, mask=black)
+    black = None
+    if output_type=='shape':
+        black = zeros(img.shape[:2], uint8)
+        drawContours(black, contours, -1, 255, -1)
+        black = bitwise_and(img, img, mask=black)
 
     # prepare the header and a data collector variables
     header = []
@@ -54,13 +56,18 @@ def analyzer(url, url_output, color_folder, organ, json_data=True):
 
         # (optional) color analysis
         templates = template_reader(color_folder)
-        result, header = tmpl_mask(img, templates, factor, contours, prev_result=result, prev_header=header)
+        if output_type=='color':
+            result, header, black = tmpl_mask(img, templates, factor, contours, prev_result=result, prev_header=header, fancy_output=True)
+        else:
+            result, header = tmpl_mask(img, templates, factor, contours, prev_result=result, prev_header=header)
     #print(url, url_output)
     if url_output != None:
         if url_output[-1]=='/':
-            imwrite(url_output+url.split('/')[-1]+'_watcher.png', black)
+            if output_type!=None:
+                imwrite(url_output+url.split('/')[-1]+'_watcher.png', black)
         else:
-            imwrite(url_output + '/' + url.split('/')[-1] + '_watcher.png', black)
+            if output_type!=None:
+                imwrite(url_output + '/' + url.split('/')[-1] + '_watcher.png', black)
     if json_data:
         return Json_formatter(header, result)
     else:

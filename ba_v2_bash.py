@@ -3,7 +3,7 @@ from os import listdir
 import sys, getopt
 from pathlib import Path
 
-def bash(path_to_photos, output_dir = None, color_folder=None, organ='bayas', keywords=[]):
+def bash(path_to_photos, output_dir = None, color_folder=None, organ='bayas', keywords=[], output_type=None):
     if output_dir!=None:
         output_dir = Path(output_dir)
     path_to_photos=Path(path_to_photos)
@@ -30,9 +30,10 @@ def bash(path_to_photos, output_dir = None, color_folder=None, organ='bayas', ke
                 print('no keyword found')
                 continue
         #print(path_to_photos+n, output_dir+n)
+        #data=analyzer(url=(path_to_photos/n).as_posix(), url_output=output_dir.as_posix(), color_folder=color_folder, json_data=False, organ=organ, output_type=output_type)
         try:
             if output_dir!=None:
-                data=analyzer(url=(path_to_photos/n).as_posix(), url_output=output_dir.as_posix(), color_folder=color_folder, json_data=False, organ=organ)
+                data=analyzer(url=(path_to_photos/n).as_posix(), url_output=output_dir.as_posix(), color_folder=color_folder, json_data=False, organ=organ, output_type=output_type)
             else:
                 data = analyzer(url=(path_to_photos / n).as_posix(), url_output=output_dir, color_folder=color_folder, json_data=False, organ=organ)
         except:
@@ -68,10 +69,11 @@ def main(argv):
     color_dir=None
     organ=None
     keywords=None
+    output_type=None
     try:
-        opts, args = getopt.getopt(argv,"hi:o:c:g:k:",["input_dir=", 'output_dir=', 'color_dir=', 'organ=', 'keywords='])
+        opts, args = getopt.getopt(argv,"hi:o:c:g:k:t:",["input_dir=", 'output_dir=', 'color_dir=', 'organ=', 'keywords=', 'output_type='])
     except getopt.GetoptError:
-        print('-i <image(s) directory> -o <data output directory> -c <color templates directory> -g <organ> -k <keywords>')
+        print('-i <image(s) directory> -o <data output directory> -c <color templates directory> -g <organ> -k <keywords> -t <shape or color>')
         sys.exit(2)
     for opt, arg in opts:
         if opt == '-h':
@@ -87,6 +89,8 @@ def main(argv):
             organ = arg
         elif opt in ("-k", "--keywords"):
             keywords = arg.split(' ')
+        elif opt in ("-t", "--output_type"):
+            output_type=arg
         else:
             print(opt, arg)
     if organ==None or organ not in organs:
@@ -94,7 +98,7 @@ def main(argv):
         print('Organ options:')
         print('- '+'\n- '.join(organs))
         sys.exit(2)
-    print(bash(path_to_photos=input_dir, output_dir=output_dir, color_folder=color_dir, organ=organ, keywords=keywords))
+    print(bash(path_to_photos=input_dir, output_dir=output_dir, color_folder=color_dir, organ=organ, keywords=keywords, output_type=output_type))
     sys.exit()
 
 if __name__ == "__main__":

@@ -1,9 +1,9 @@
-from numpy import asarray, array, argwhere
-from cv2 import COLOR_BGR2Lab, cvtColor, inRange, add, countNonZero, imshow, waitKey
+from numpy import asarray, array, argwhere, zeros, uint8, concatenate
+from cv2 import COLOR_BGR2Lab, cvtColor, inRange, add, countNonZero, imshow, waitKey, bitwise_and, FONT_HERSHEY_SIMPLEX, putText, LINE_AA
 from .find_objects import contour_crop
 from os import listdir
 
-def tmpl_mask(img, tmpls_parsed, factor=1, cnts=None, prev_result=None, prev_header=None):
+def tmpl_mask(img_orig, tmpls_parsed, factor=1, cnts=None, prev_result=None, prev_header=None, fancy_output=False):
     """
     Apply the 32x32 color templates to the input image.
     :param img: numpy array image. Input image
@@ -19,8 +19,8 @@ def tmpl_mask(img, tmpls_parsed, factor=1, cnts=None, prev_result=None, prev_hea
     try:
         cnts[0][0]
     except:
-        cnts=[asarray([(0,0), (0, img.shape[0]), (img.shape[1], img.shape[0]), (img.shape[1], 0)]).reshape(4,1,2)]
-    img = cvtColor(img, COLOR_BGR2Lab)
+        cnts=[asarray([(0,0), (0, img_orig.shape[0]), (img_orig.shape[1], img_orig.shape[0]), (img_orig.shape[1], 0)]).reshape(4,1,2)]
+    img = cvtColor(img_orig.copy(), COLOR_BGR2Lab)
     if prev_result==None:
         result=[]
     else:
@@ -30,12 +30,17 @@ def tmpl_mask(img, tmpls_parsed, factor=1, cnts=None, prev_result=None, prev_hea
         header=[]
     else:
         header=prev_header.copy()
+    if fancy_output:
+        black=[]
+        for n in range(len(tmpls_parsed)):
+            black.append(zeros(img.shape[:2], uint8))
     for cnt in cnts:
         if prev_result==None:
             result.append([])
 
-        img_temp=contour_crop(img, cnt, background=True)
+        img_temp=contour_crop(img, cnt.copy(), background=True)
         total=[]
+        template_counter=0
         for (name,tmpl_parsed) in tmpls_parsed:
             if counter==0:
                 header.append(name+'_area')
@@ -63,6 +68,9 @@ def tmpl_mask(img, tmpls_parsed, factor=1, cnts=None, prev_result=None, prev_hea
 
                 masked = add(masked, c_mask)
             total.append(round(countNonZero(masked) * (factor ** 2), 2))
+            if fancy_output:
+                black[template_counter][min(cnt[:, 0, 1]):min(cnt[:, 0, 1])+masked.shape[0], min(cnt[:, 0, 0]):min(cnt[:, 0, 0])+masked.shape[1]]=masked
+            template_counter+=1
             #if prev_result==None:
             #    result[-1].append(round(countNonZero(masked) * (factor ** 2), 2))
             #else:
@@ -78,6 +86,16 @@ def tmpl_mask(img, tmpls_parsed, factor=1, cnts=None, prev_result=None, prev_hea
                 result[counter].append(n)
                 result[counter].append(round((n / all) * 100, 2))
         counter+=1
+    if fancy_output:
+        font = FONT_HERSHEY_SIMPLEX
+        temp=img_orig.copy()
+        putText(temp, 'Original', (5,15), font, 0.5, (0, 0, 0), 1, LINE_AA)
+        for n in range(len(black)):
+            black[n] = bitwise_and(img_orig, img_orig, mask=black[n])
+            putText(black[n], tmpls_parsed[n][0], (5,15), font, 0.5, (255, 255, 255), 1, LINE_AA)
+        temp=concatenate([temp]+black, axis=1)
+        #del(black)
+        return [result, header, temp]
     return [result, header]
 
 def template_reader(directory):
@@ -90,7 +108,7 @@ def template_reader(directory):
     if directory[-1]!='/':
         directory+='/'
     for n in listdir(directory):
-        if '.tsv' not in n:
+        if '.tsv' not in n or '-.' in n:
             continue
         filess = open(directory+n, 'r')
         filess_tab = filess.read().replace('\n', '\t').split('\t')
